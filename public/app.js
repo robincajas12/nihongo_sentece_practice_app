@@ -119,7 +119,7 @@ async function deleteModule(id) {
 
 function startModuleSession(pattern, type) {
     state.type = type;
-    startSession(pattern, 10);
+    startSession(pattern, 20);
 }
 
 // --- Search & Session Logic ---
