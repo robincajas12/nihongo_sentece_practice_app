@@ -9,13 +9,45 @@
 </head>
 <body>
     <div class="container">
-        <!-- VISTA: BÚSQUEDA -->
-        <div id="view-search" class="view">
+        <!-- VISTA: MAPA DE MÓDULOS -->
+        <div id="view-map" class="view">
             <div class="header-actions">
-                <div style="flex:1"></div>
+                <button id="btn-show-creator" class="duo-button btn-secondary">+ Módulo</button>
+                <button id="btn-goto-free" class="duo-button btn-secondary">Buscador</button>
                 <a href="/history" class="duo-button btn-secondary">Historial</a>
             </div>
-            <h1 class="title">NihongoApp</h1>
+            
+            <h1 class="title">Mi Camino</h1>
+            
+            <div id="module-path" class="module-path">
+                <!-- Los módulos se cargarán aquí -->
+            </div>
+
+            <!-- Modal para crear módulo -->
+            <div id="module-creator" class="card hidden" style="margin-top: 20px;">
+                <h2 class="title-small">Nuevo Módulo</h2>
+                <label class="label-bold">Título:</label>
+                <input type="text" id="module-title" class="duo-input" placeholder="Ej: Condicional Tara">
+                <label class="label-bold">Patrón:</label>
+                <input type="text" id="module-pattern" class="duo-input" placeholder="Ej: たら">
+                <label class="label-bold">Tipo de Ejercicio:</label>
+                <select id="module-type" class="duo-input">
+                    <option value="JP_EN">Japonés → Inglés</option>
+                    <option value="EN_JP">Inglés → Japonés</option>
+                </select>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-cancel-module" class="duo-button btn-secondary" style="flex:1">Cerrar</button>
+                    <button id="btn-save-module" class="duo-button btn-primary" style="flex:1">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA: BÚSQUEDA (PRÁCTICA LIBRE) -->
+        <div id="view-search" class="view hidden">
+            <div class="header-actions">
+                <button id="btn-goto-map" class="duo-button btn-secondary">← Volver al Mapa</button>
+            </div>
+            <h1 class="title">Buscador</h1>
             <div class="card">
                 <label class="label-bold">Modo de juego:</label>
                 <div class="type-selector">

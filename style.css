@@ -305,11 +305,107 @@ body {
     margin-top: -10px; /* Ajuste para el margin del input */
 }
 
-select.duo-input {
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23AFAFAF%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    background-size: 16px;
+/* Learning Path / Map */
+.module-path {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    padding: 40px 0;
+}
+
+.module-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     cursor: pointer;
+    transition: transform 0.2s;
+    position: relative;
+}
+
+.module-node:hover {
+    transform: scale(1.05);
+}
+
+.module-circle {
+    width: 80px;
+    height: 70px;
+    background: var(--duo-green);
+    border-radius: 50%;
+    border-bottom: 8px solid var(--duo-green-shadow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 2rem;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+}
+
+/* Estilo Dorado para Completados */
+.module-node.completed .module-circle {
+    background: #FFC800;
+    border-bottom-color: #E5A100;
+}
+.module-node.completed .module-title {
+    color: #E5A100;
+}
+
+.module-count {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: white;
+    border: 2px solid var(--duo-gray);
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.module-type-badge {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    background: var(--duo-blue);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    box-shadow: 0 2px 0 var(--duo-blue-shadow);
+}
+
+.module-title {
+    margin-top: 10px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--duo-text);
+    text-align: center;
+    max-width: 120px;
+}
+
+.module-node:nth-child(even) {
+    margin-left: 60px;
+}
+.module-node:nth-child(odd) {
+    margin-right: 60px;
+}
+
+.btn-delete-module {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--duo-red);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: none;
+}
+
+.module-node:hover .btn-delete-module {
+    display: block;
 }

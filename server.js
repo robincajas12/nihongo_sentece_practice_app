@@ -31,34 +31,84 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// --- Schemas ---
+// --- Schemas con Índices ---
 const JpToEnSchema = new mongoose.Schema({
   _id: String,
-  jpSentence: String,
+  jpSentence: { type: String, index: true },
   enTranslations: [String]
 }, { collection: 'jp_to_en' });
 
 const EnToJpSchema = new mongoose.Schema({
   _id: String,
   enSentence: String,
-  jpTranslations: [String]
+  jpTranslations: { type: [String], index: true }
 }, { collection: 'en_to_jp' });
 
 const CompletedSchema = new mongoose.Schema({
   originalId: String,
-  type: { type: String, enum: ['JP_EN', 'EN_JP'] },
-  sentence: String,
+  type: { type: String, enum: ['JP_EN', 'EN_JP'], index: true },
+  sentence: { type: String, index: true },
   answer: String,
-  correctAnswer: String,
+  correctAnswers: [String],
   status: { type: String, enum: ['correct', 'incorrect'] },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now, index: true }
 }, { collection: 'completed_sentences' });
 
 const JpToEn = mongoose.model('JpToEn', JpToEnSchema);
 const EnToJp = mongoose.model('EnToJp', EnToJpSchema);
 const Completed = mongoose.model('Completed', CompletedSchema);
 
+// --- Módulos ---
+const ModuleSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  pattern: { type: String, required: true },
+  type: { type: String, enum: ['JP_EN', 'EN_JP'], default: 'JP_EN' },
+  createdAt: { type: Date, default: Date.now }
+}, { collection: 'study_modules' });
+
+const StudyModule = mongoose.model('StudyModule', ModuleSchema);
+
 // --- API Routes ---
+
+// Módulos: Obtener todos CON conteo optimizado
+app.get('/api/modules', async (req, res) => {
+  try {
+    const modules = await StudyModule.find().sort({ createdAt: 1 }).lean();
+    
+    // Optimizamos: Calculamos todos los conteos en paralelo en el servidor
+    const modulesWithCounts = await Promise.all(modules.map(async (m) => {
+      const Model = m.type === 'JP_EN' ? JpToEn : EnToJp;
+      const searchField = m.type === 'JP_EN' ? 'jpSentence' : 'jpTranslations';
+      const count = await Model.countDocuments({ [searchField]: { $regex: m.pattern, $options: 'i' } });
+      return { ...m, totalPending: count };
+    }));
+
+    res.json(modulesWithCounts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Módulos: Crear uno nuevo
+app.post('/api/modules', async (req, res) => {
+  try {
+    const { title, pattern, type } = req.body;
+    const newModule = await StudyModule.create({ title, pattern, type });
+    res.json(newModule);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Módulos: Eliminar
+app.delete('/api/modules/:id', async (req, res) => {
+  try {
+    await StudyModule.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // 1. Search & Filter
 app.get('/api/sentences/filter', async (req, res) => {
@@ -81,10 +131,10 @@ app.get('/api/sentences/filter', async (req, res) => {
 
 // 2. Complete Exercise (Transfer Logic)
 app.post('/api/sentences/complete', async (req, res) => {
-  const { originalId, type, sentence, answer, correctAnswer, status } = req.body;
+  const { originalId, type, sentence, answer, correctAnswers, status } = req.body;
   try {
     // Save to Completed
-    await Completed.create({ originalId, type, sentence, answer, correctAnswer, status });
+    await Completed.create({ originalId, type, sentence, answer, correctAnswers, status });
     // Remove from original collection
     const Model = type === 'JP_EN' ? JpToEn : EnToJp;
     await Model.findByIdAndDelete(originalId);
