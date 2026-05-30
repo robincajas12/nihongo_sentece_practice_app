@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NihongoApp - Pro Setup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- VISTA: BÚSQUEDA -->
+        <div id="view-search" class="view">
+            <div class="header-actions">
+                <div style="flex:1"></div>
+                <a href="/history" class="duo-button btn-secondary">Historial</a>
+            </div>
+            <h1 class="title">NihongoApp</h1>
+            <div class="card">
+                <label class="label-bold">Modo de juego:</label>
+                <div class="type-selector">
+                    <button id="btn-type-jp-en" class="duo-button btn-active">JP → EN</button>
+                    <button id="btn-type-en-jp" class="duo-button btn-secondary">EN → JP</button>
+                </div>
+
+                <label class="label-bold">Filtrar por palabra:</label>
+                <div class="search-group">
+                    <input type="text" id="input-pattern" class="duo-input" placeholder="Ej: いつも, 学校...">
+                    <div id="availability-badge" class="availability-badge">... disponibles</div>
+                </div>
+
+                <label class="label-bold">Cantidad de ejercicios:</label>
+                <select id="select-limit" class="duo-input">
+                    <option value="5">5 oraciones</option>
+                    <option value="10" selected>10 oraciones</option>
+                    <option value="20">20 oraciones</option>
+                    <option value="50">50 oraciones</option>
+                </select>
+
+                <button id="btn-start" class="duo-button btn-primary full-width">Empezar Sesión</button>
+            </div>
+        </div>
+
+        <!-- VISTA: EJERCICIO -->
+        <div id="view-exercise" class="view hidden">
+            <div class="header-actions">
+                <button id="btn-exit" class="duo-button btn-secondary">Salir</button>
+                <div class="header-right">
+                    <button id="btn-later" class="duo-button btn-secondary">Al final</button>
+                    <button id="btn-skip" class="duo-button btn-secondary">Saltar</button>
+                    <button id="btn-delete" class="duo-button btn-danger">Borrar</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <!-- JP -> EN Interface -->
+                <div id="exercise-jp-en" class="exercise-mode">
+                    <p class="instruction">Escribe esto en inglés:</p>
+                    <div id="display-jp" class="bubble"></div>
+                    <div id="answer-area" class="answer-area"></div>
+                    <div id="word-bank" class="word-bank"></div>
+                </div>
+
+                <!-- EN -> JP Interface -->
+                <div id="exercise-en-jp" class="exercise-mode hidden">
+                    <p class="instruction">Traduce al japonés:</p>
+                    <div id="display-en" class="en-sentence"></div>
+                    <textarea id="input-jp" class="duo-input" rows="3" placeholder="Escribe en japonés..."></textarea>
+                    
+                    <div id="eval-section" class="eval-box hidden">
+                        <p class="correct-answer-label">Respuesta Correcta:</p>
+                        <p id="text-correct" class="correct-answer-text"></p>
+                        <div class="eval-buttons">
+                            <button id="btn-fail" class="duo-button btn-danger">Lo tuve mal</button>
+                            <button id="btn-success" class="duo-button btn-primary">Lo tuve bien</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-check" class="duo-button btn-primary full-width">Comprobar</button>
+            </div>
+        </div>
+
+        <!-- VISTA: HISTORIAL -->
+        <div id="view-history" class="view hidden">
+            <div class="header-actions">
+                <button id="btn-back" class="duo-button btn-secondary">← Volver</button>
+            </div>
+            <h2 class="title-small">Historial Reciente</h2>
+            <div id="history-list" class="history-container"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

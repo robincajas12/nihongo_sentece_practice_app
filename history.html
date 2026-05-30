@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial - NihongoApp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .filter-bar {
+            background: white;
+            border: 2px solid var(--duo-gray);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .history-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-actions">
+            <a href="/" class="duo-button btn-secondary">← Volver al inicio</a>
+        </div>
+        
+        <h1 class="title-small">Historial de Práctica</h1>
+
+        <div class="filter-bar">
+            <div class="filter-row">
+                <label class="label-bold" style="margin:0">Tipo:</label>
+                <select id="filter-type" class="duo-input" style="margin:0; padding: 8px 12px;">
+                    <option value="ALL">Todos</option>
+                    <option value="JP_EN">JP → EN</option>
+                    <option value="EN_JP">EN → JP</option>
+                </select>
+            </div>
+            <input type="text" id="filter-pattern" class="duo-input" style="margin:0" placeholder="Buscar por palabra o frase...">
+            <button id="btn-review" class="duo-button btn-active full-width hidden">Repasar estos resultados</button>
+        </div>
+
+        <div id="view-list">
+            <div id="history-list" class="history-container"></div>
+        </div>
+
+        <!-- VISTA: REPASO (Basada en la lógica de index.html) -->
+        <div id="view-exercise" class="view hidden">
+            <div class="header-actions">
+                <button id="btn-exit-review" class="duo-button btn-secondary">Salir del repaso</button>
+                <div class="header-right">
+                    <button id="btn-later" class="duo-button btn-secondary">Al final</button>
+                    <button id="btn-skip" class="duo-button btn-secondary">Saltar</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div id="exercise-jp-en" class="exercise-mode">
+                    <p class="instruction">Escribe esto en inglés:</p>
+                    <div id="display-jp" class="bubble"></div>
+                    <div id="answer-area" class="answer-area"></div>
+                    <div id="word-bank" class="word-bank"></div>
+                </div>
+
+                <div id="exercise-en-jp" class="exercise-mode hidden">
+                    <p class="instruction">Traduce al japonés:</p>
+                    <div id="display-en" class="en-sentence"></div>
+                    <textarea id="input-jp" class="duo-input" rows="3" placeholder="Escribe en japonés..."></textarea>
+                    
+                    <div id="eval-section" class="eval-box hidden">
+                        <p class="correct-answer-label">Respuesta Correcta:</p>
+                        <p id="text-correct" class="correct-answer-text"></p>
+                        <div class="eval-buttons">
+                            <button id="btn-fail" class="duo-button btn-danger">MAL</button>
+                            <button id="btn-success" class="duo-button btn-primary">BIEN</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-check" class="duo-button btn-primary full-width">Comprobar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        let state = {
+            sentences: [],
+            currentIndex: 0,
+            selectedWords: [],
+            currentType: 'JP_EN'
+        };
+
+        const list = document.getElementById('history-list');
+        const typeSelect = document.getElementById('filter-type');
+        const patternInput = document.getElementById('filter-pattern');
+        const btnReview = document.getElementById('btn-review');
+        const viewList = document.getElementById('view-list');
+        const viewExercise = document.getElementById('view-exercise');
+
+        // DOM de Ejercicios
+        const dom = {
+            displayJp: document.getElementById('display-jp'),
+            displayEn: document.getElementById('display-en'),
+            answerArea: document.getElementById('answer-area'),
+            wordBank: document.getElementById('word-bank'),
+            inputJp: document.getElementById('input-jp'),
+            evalSection: document.getElementById('eval-section'),
+            textCorrect: document.getElementById('text-correct'),
+            btnCheck: document.getElementById('btn-check'),
+            modes: {
+                jpEn: document.getElementById('exercise-jp-en'),
+                enJp: document.getElementById('exercise-en-jp')
+            }
+        };
+
+        async function loadHistory() {
+            const type = typeSelect.value;
+            const pattern = patternInput.value;
+            
+            try {
+                const res = await fetch(`${API}/history?type=${type}&pattern=${pattern}&limit=50`);
+                state.sentences = await res.json();
+                
+                if (state.sentences.length > 0) {
+                    btnReview.classList.remove('hidden');
+                } else {
+                    btnReview.classList.add('hidden');
+                }
+
+                list.innerHTML = state.sentences.map(h => `
+                    <div class="history-item ${h.status}">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <span class="label-bold" style="font-size:0.65rem; color:var(--duo-blue)">${h.type}</span>
+                            <small style="font-size:0.7rem; color:#ccc;">${new Date(h.createdAt).toLocaleDateString()}</small>
+                        </div>
+                        <strong>${h.sentence}</strong>
+                        <div style="margin-top:8px;">
+                            <small>Respuesta: <span style="color:${h.status === 'correct' ? 'var(--duo-green)' : 'var(--duo-red)'}">${h.answer || '(Vacío)'}</span></small><br>
+                            <small style="color:#afafaf">Correcta: ${h.correctAnswer}</small>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = '<p style="text-align:center; color:var(--duo-red);">Error al cargar el historial.</p>';
+            }
+        }
+
+        // --- Lógica de Repaso ---
+        btnReview.onclick = () => {
+            if (state.sentences.length === 0) return;
+            state.currentIndex = 0;
+            viewList.classList.add('hidden');
+            document.querySelector('.filter-bar').classList.add('hidden');
+            viewExercise.classList.remove('hidden');
+            renderReviewExercise();
+        };
+
+        function renderReviewExercise() {
+            const current = state.sentences[state.currentIndex];
+            state.currentType = current.type; // Usamos el tipo original de la oración completada
+            
+            dom.btnCheck.classList.remove('hidden');
+            
+            if (state.currentType === 'JP_EN') {
+                dom.modes.jpEn.classList.remove('hidden');
+                dom.modes.enJp.classList.add('hidden');
+                dom.displayJp.innerText = current.sentence; // En el historial 'sentence' es la pregunta
+                dom.answerArea.innerHTML = '';
+                state.selectedWords = [];
+                
+                // Mezclar palabras de la respuesta correcta original
+                const words = current.correctAnswer.split(' ').sort(() => Math.random() - 0.5);
+                dom.wordBank.innerHTML = '';
+                words.forEach(w => {
+                    const b = document.createElement('div');
+                    b.className = 'word-block';
+                    b.innerText = w;
+                    b.onclick = () => {
+                        if (!b.classList.contains('used')) {
+                            b.classList.add('used');
+                            addWordToAnswer(w, b);
+                        }
+                    };
+                    dom.wordBank.appendChild(b);
+                });
+            } else {
+                dom.modes.jpEn.classList.add('hidden');
+                dom.modes.enJp.classList.remove('hidden');
+                dom.evalSection.classList.add('hidden');
+                dom.displayEn.innerText = current.sentence;
+                dom.inputJp.value = '';
+                dom.inputJp.disabled = false;
+            }
+        }
+
+        function addWordToAnswer(word, bankRef) {
+            state.selectedWords.push(word);
+            const b = document.createElement('div');
+            b.className = 'word-block';
+            b.innerText = word;
+            b.onclick = () => {
+                state.selectedWords = state.selectedWords.filter(x => x !== word);
+                b.remove();
+                bankRef.classList.remove('used');
+            };
+            dom.answerArea.appendChild(b);
+        }
+
+        dom.btnCheck.onclick = () => {
+            const current = state.sentences[state.currentIndex];
+            if (state.currentType === 'JP_EN') {
+                const answer = state.selectedWords.join(' ');
+                const isCorrect = current.correctAnswer === answer;
+                alert(isCorrect ? '¡Bien repasado!' : `Era: ${current.correctAnswer}`);
+                next();
+            } else {
+                document.getElementById('text-correct').innerText = current.correctAnswer;
+                dom.evalSection.classList.remove('hidden');
+                dom.btnCheck.classList.add('hidden');
+            }
+        };
+
+        document.getElementById('btn-success').onclick = next;
+        document.getElementById('btn-fail').onclick = next;
+        document.getElementById('btn-skip').onclick = next;
+        document.getElementById('btn-later').onclick = () => {
+            const current = state.sentences.splice(state.currentIndex, 1)[0];
+            state.sentences.push(current);
+            renderReviewExercise();
+        };
+
+        function next() {
+            state.currentIndex++;
+            if (state.currentIndex < state.sentences.length) {
+                renderReviewExercise();
+            } else {
+                alert('Repaso finalizado');
+                location.reload();
+            }
+        }
+
+        document.getElementById('btn-exit-review').onclick = () => location.reload();
+
+        typeSelect.onchange = loadHistory;
+        patternInput.oninput = () => {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(loadHistory, 400);
+        };
+
+        loadHistory();
+    </script>
+</body>
+</html>
