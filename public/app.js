@@ -2,7 +2,7 @@
  * NihongoApp - Logic (With Modules System)
  */
 
-const API = 'http://localhost:3001/api';
+const API = '/api';
 
 let state = {
     view: 'map', // 'map', 'search', 'exercise'

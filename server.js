@@ -9,20 +9,21 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const path = require('path');
 app.use(cors());
 app.use(express.json());
 
-// Servir archivos estáticos del frontend (HTML, CSS, JS)
-app.use(express.static(__dirname));
+// Servir archivos estáticos de la carpeta public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Ruta principal para servir index.html
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Ruta para servir history.html
 app.get('/history', (req, res) => {
-  res.sendFile(__dirname + '/history.html');
+  res.sendFile(path.join(__dirname, 'public', 'history.html'));
 });
 
 const MONGO_URI = process.env.MONGODB_URL || 'mongodb://localhost:27017/nihongoApp';
